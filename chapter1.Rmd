@@ -7,5 +7,5 @@
 This course seems like a lot of fun.
 
 ## My GitHub repository
-My GitHub repository can be found 
+My GitHub repository can be found at
 <https://github.com/anorring/IODS-project>
