@@ -8,4 +8,4 @@ This course seems like a lot of fun.
 
 ## My GitHub repository
 My GitHub repository can be found 
-<https://github.com/anorring/IODS-project>[here]
+<https://github.com/anorring/IODS-project>
