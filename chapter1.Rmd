@@ -1,9 +1,13 @@
 
 # Chapter 1: Tools and methods for open and reproducible research
 
-## Introduction to Open Data Science
+## RStudio Exercise 1: About the project
+
+*Write a short description about the course and add a link to your github repository here. This is an R markdown (.Rmd) file so you can use R markdown syntax. See the 'Useful links' page in the mooc area (chapter 1) for instructions.*
+
+### Introduction to Open Data Science
 This course seems like a lot of fun.
 
-## My GitHub repository
+### My GitHub repository
 My GitHub repository can be found 
 [here.](https://github.com/anorring/IODS-project)
