@@ -76,20 +76,25 @@ lrn14$Attitude / 10
 # create column 'attitude' by scaling the column "Attitude"
 lrn14$attitude <- lrn14$Attitude / 10
 
-# change the name of the second column
-colnames(lrn14)[2] <- "age"
-
-# change the name of "Points" to "points"
-colnames(lrn14)[7] <- "points"
-
 # Next select the columns we want to keep:
-keep_columns <- c("gender","age","attitude", "deep", "stra", "surf", "points")
+keep_columns <- c("gender","Age","attitude", "deep", "stra", "surf", "Points")
 
 # select the 'keep_columns' to create a new dataset
 learning2014 <- select(lrn14, one_of(keep_columns))
 
 # see the stucture of the new dataset
 str(learning2014)
+
+#To be extra tidy:
+
+# change the name of the second column
+colnames(learning2014)[2] <- "age"
+
+# change the name of "Points" to "points"
+colnames(learning2014)[7] <- "points"
+
+# we now have
+colnames(learning2014)
 
 
 ##Exclude observations where the exam points variable is zero:
@@ -102,8 +107,7 @@ dim(learning2014)
 
 str(learning2014)
 
-# The dataset has 183 observations and 7 variables, which is similar to what was obtained in the datacamp excercise,
-# but not the 166 observations mentioned in the RStudio excercise 2. ¯\_(???)_/¯
+# The dataset has 166 observations and 7 variables.
 
 
 ####################################################################
@@ -132,6 +136,7 @@ write.table(learning2014, file = "learning2014.csv", sep = "\t", col.names = TRU
 
 read.table("learning2014.csv", header = TRUE, sep = "\t")
 
+dim(learning2014)
 str(learning2014)
 head(learning2014)
 
