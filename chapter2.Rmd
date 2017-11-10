@@ -5,20 +5,19 @@ date: "9.11.2017"
 output: html_document
 ---
 
-# RStudio exercise 2
+# Chapter 2: Regression and model validation
 
-*Describe the work you have done this week and summarize your learning.*
+## RStudio exercise 2: Data wrangling and analysis
 
-- Describe your work and results clearly. 
-- Assume the reader has an introductory course level understanding of writing and reading R code as well as statistical methods
-- Assume the reader has no previous knowledge of your data or the more advanced methods you are using  
+## Data wrangling
 
+You can find my preprocessed data set from my [GitHub repository.](https://github.com/anorring/IODS-project)
 
-# Analysis
+## Analysis
 
-## 1. Data
+### 1. Data
 
-The learning2014 dataset has been collected as an international survey of approaches to learning (you can find more information on it from [here.](http://www.helsinki.fi/~kvehkala/JYTmooc/JYTOPKYS3-meta.txt)) during 3.12.2014 - 10.1.2015. It contains 183 observations on 7 variables. 
+The learning2014 dataset has been collected as an international survey of approaches to learning (you can find more information on it from [here.](http://www.helsinki.fi/~kvehkala/JYTmooc/JYTOPKYS3-meta.txt)) during 3.12.2014 - 10.1.2015. It contains 166 observations on 7 variables. 
 
 ```{r}
 learning2014 <- read.table("learning2014.csv", header = TRUE, sep = "\t")
@@ -40,9 +39,9 @@ The variables are gender, age, attitude, deep, stra, surf and points.
 
 
 
-## 2. A more detailed view on the data
+### 2. A more detailed view on the data
 
-### A graphical overview:
+#### A graphical overview:
 
 It seems like a fairly plausible assumption that a student's attitude towards statistics has a big impact on exam success. We can start by plotting the variables attitude and points as a twoway scatter plot with a color indicator for gender and regression lines.
 
@@ -76,7 +75,7 @@ p
 ```
 
 
-### Summary of the variables
+#### Summary of the variables
 
 From the summary of the data we can see the min, max, median and mean values as well as the 1st and 3rd quintiles of all the variables. One can note that the sample is biased towards female respondents, that the respondents are mostly in their early twenties and have a generally more positive than negative view of statistics as a discipline. The median and mean values of the learning variables deep, stra and surf show that the respondents are more likely to engage in deep learning than surface learning.
 
@@ -85,7 +84,7 @@ summary(learning2014)
 ```
 
 
-## 3. A regression model
+### 3. A regression model
 
 Next let's see if some of the hypothesis made above hold up against a bit more sophisticated analysis. We will consider exam points as the dependent variable and the aim is to fit a regression model to the data that would explain what affects the number of exam points.
 
@@ -117,7 +116,7 @@ summary(points_model)
 Now we can see that the median of residuals is smaller than in the multiple regression, which is a good thing. We can also see that both the effect of intercept and of attitude are now highly statistically significant, whereas before when we included also the other two variables, the intercept was slightly less significant.
 
 
-## 4. Interpreting the regression results
+### 4. Interpreting the regression results
 
 From the summary of our simple linear regression model we can see that the estimated effect of attitude on points is 3.5255. This means that a change of one unit in attitude (and all other variables are held constant) corresponds to a 3.5255 increase in the exam points. Even more concretely, a student with an attitude score of 4 is expected to score 3.5255 points more on the exam than a student with an attitude score of 3. This result clearle validates the hypothesis made in part 2 of attitude towards statistics being an important predictor of success in the exam. 
 
@@ -126,7 +125,7 @@ The "multiple R-squared" printed as a part of the summary gives the coefficient 
 Notice that R-squared is higher in the multiple regression model, even though the additional explanatory variables are insignificant. This is because the R-squared automatically increases when any explanatory  variables are added to a model. To account for this, R prints also "adjusted R-squared" that adjusts for the number of explanatory variables relative to the number of data points. 
 
 
-## 5. Diagnostic plots
+### 5. Diagnostic plots
 
 When using a linear regressin model, we make to important assumptions on the data generating process:
 - the target variable is a linear combination of the model parameters
