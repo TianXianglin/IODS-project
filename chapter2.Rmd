@@ -43,12 +43,15 @@ The variables are gender, age, attitude, deep, stra, surf and points.
 
 #### A graphical overview:
 
-It seems like a fairly plausible assumption that a student's attitude towards statistics has a big impact on exam success. We can start by plotting the variables attitude and points as a twoway scatter plot with a color indicator for gender and regression lines.
+It seems like a fairly plausible assumption that a student's attitude towards statistics has a big impact on exam success. We can start by plotting the variables attitude and points as a twoway scatter plot with a color indicator for gender and regression lines. (I use option include=FALSE when accessing the libraries to remove the warning messages by R from the output.)
 
-```{r}
-
+```{r, include=FALSE}
 # Access the gglot2 library
 library(ggplot2)
+```
+
+
+```{r}
 
 # initialize plot with data and aesthetic mapping, define the visualization type (points), add a regression line and add a main title:
 p1 <- ggplot(learning2014, aes(x = attitude, y = points, col = gender)) + geom_point() + geom_smooth(method = "lm")  + ggtitle("Student's attitude versus exam points")
@@ -61,11 +64,14 @@ p1
 
 Next let's consider a more detailed plot describing the variables, their distributions and relationships. This plot contains a heapload of information! First, we can infact see that the hypothesis on the relation between attitude and exam points was plausible, as the correlation between points and attitude is indeed stonger than with points and any other variable.  
 
-```{r}
+```{r, include=FALSE}
 # access the GGally and ggplot2 libraries
 library(GGally)
 library(ggplot2)
+```
 
+
+```{r}
 # create a more advanced plot matrix with ggpairs()
 p <- ggpairs(learning2014, mapping = aes(col = gender, alpha = 0.3), lower = list(combo = wrap("facethist", bins = 20)))
 
