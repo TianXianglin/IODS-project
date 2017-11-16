@@ -11,7 +11,7 @@ output: html_document
 
 ## Data wrangling
 
-You can find my preprocessed data set from my [GitHub repository.](https://github.com/anorring/IODS-project)
+You can find my [preprocessed data set](https://github.com/anorring/IODS-project/blob/master/learning2014.csv) and the [data wrangling R script](https://github.com/anorring/IODS-project/blob/master/data/create_learning2014.R) from my [GitHub repository.](https://github.com/anorring/IODS-project)
 
 ## Analysis
 
