@@ -133,7 +133,7 @@ Notice that R-squared is higher in the multiple regression model, even though th
 
 ### 5. Diagnostic plots
 
-When using a linear regressin model, we make to important assumptions on the data generating process:
+When using a linear regression model, we make two important assumptions on the data generating process:
 - the target variable is a linear combination of the model parameters
 - errors are normally distributed with zero mean and a constant variance
 
