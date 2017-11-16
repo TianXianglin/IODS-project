@@ -122,7 +122,7 @@ str(learning2014)
 # Check the current working directory:
 getwd()
 
-# Set the working directoru to be the IODS project folder:
+# Set the working directory to be the IODS project folder:
 setwd("\\\\ATKK/home/a/awsalo/Documents/GitHub/IODS-project")
 
 ## Save the analysis dataset to the 'data' folder, using for example write.csv() or write.table() functions. 

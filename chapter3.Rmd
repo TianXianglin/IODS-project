@@ -1,0 +1,46 @@
+---
+title: "Chapter 3: Logistic regression"
+author: "Anni Norring"
+date: "16.11.2017"
+output: html_document
+---
+
+# Chapter 3: Logistic regression
+
+## RStudio exercise 3: Data wrangling and analysis
+
+## Data wrangling
+
+You can find my [preprocessed data set]() and the [data wrangling R script]() from my [GitHub repository.](https://github.com/anorring/IODS-project)
+
+## Analysis
+
+### 2. Data
+
+The alc data set contains data on student alcohol consumption and it is a joined data set from two data sets included in the Student Performance Data. You can larn more about the data [here](https://archive.ics.uci.edu/ml/datasets/Student+Performance). The data contains 382 observations on 35 variables. 
+
+```{r}
+alc <- read.table("http://s3.amazonaws.com/assets.datacamp.com/production/course_2218/datasets/alc.txt", header = TRUE, sep = ",")
+dim(alc)
+colnames(alc)
+str(alc)
+```
+
+### 3. Hypothesis
+
+Now we will present a few hypothesis about the possible links between some variables in the data and alcohol consumption. First, as in the DataCamp exercises, it seems like a plausible thing to assume that sex, absences and failures are correlated with alcohol consumption. As a fourth candidate for we will choose family size (famsize), with the idea being that students with a spouse or even children are less likely to go out partying than their single peers.
+
+Let's formally state the hypothesis:
+
+1. Male students are more likely to consume more alcohol than female students.
+2. Students that consume more alcohol are more likely to gain absences than those who consume less.
+3. Students that consume more alcohol are more likely to fail courses than those who consume less.
+4. Students with a spouse and/or children are more likely to consume LESS alcohol than single students. 
+
+The first three hypothesis are associated with a positive correlation and the fourth with negative correlation. 
+
+
+
+
+
+
