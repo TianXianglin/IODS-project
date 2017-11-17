@@ -159,6 +159,11 @@ alc <- mutate(alc, high_use = alc_use > 2)
 glimpse(alc)
 # Everything appears to be OK. There are 382 observations of 35 variables, i.e. just as we should have.
 
+# Lastly, we'll save the joined and modified data set to the data folder:
+write.table(alc, file = "alc.csv", sep = ";", col.names = TRUE)
+
+
+
 ####################################################################
 
 
