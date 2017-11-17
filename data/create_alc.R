@@ -11,10 +11,10 @@
 
 ### Part 2
 
-# The data was downloaded from https://archive.ics.uci.edu/ml/datasets/Student+Performance. At this point it consists of
-#   data sets: students-mat.csv and students-por.csv, which are the results of two questionnaires answered by students
-#   on a math class and on a portuguese class respectively.The aim is to combine these two data sets for further 
-#   analysis.
+# The data was downloaded from https://archive.ics.uci.edu/ml/datasets/Student+Performance. At this point it consists 
+#   of two data sets: students-mat.csv and students-por.csv, which are the results of two questionnaires answered 
+#   by students on a math class and on a portuguese class respectively.The aim is to combine these two data sets for 
+#   further analysis.
 
 ####################################################################
 
