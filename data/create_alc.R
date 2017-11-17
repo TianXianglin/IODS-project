@@ -159,14 +159,19 @@ alc <- mutate(alc, high_use = alc_use > 2)
 glimpse(alc)
 # Everything appears to be OK. There are 382 observations of 35 variables, i.e. just as we should have.
 
-# Lastly, we'll save the joined and modified data set to the data folder:
+# Lastly, we'll save the joined and modified data set to the data folder. In order not to run into working directory
+#   problems while working with analysis part, we will save the data set to the same working directory as the 
+#   RMarkdown file we will use for the analysis.
+
+# Set the working directory to be the IODS project folder:
+setwd("\\\\ATKK/home/a/awsalo/Documents/GitHub/IODS-project")
+
+# Save the data set:
 write.table(alc, file = "alc.csv", sep = ";", col.names = TRUE)
 
 
 
 ####################################################################
-
-
 
 
 
