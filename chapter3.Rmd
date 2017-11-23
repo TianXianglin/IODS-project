@@ -146,7 +146,7 @@ Note also that as all of the odds ratios calculated are higher than one, all our
 From the confidence intervals we can see that all the intervals of all the statistically significant variables do not include zero, but the interval for "failures" does. That is, the effect of this variable on the likelihood of high alcohol consumption is statistically indifferent from zero.
 
 
-```{r, include = FALSE}
+```{r, warning = FALSE}
 # compute odds ratios (OR)
 OR1 <- coef(m1) %>% exp
 
@@ -174,7 +174,7 @@ summary(m2)
 
 Now we will use the predict() function to make predictions from this model. We start by adding two columns to our data set: "probability" with the predicted probabilities and "prediction" which takes value TRUE if the value of "probability" is larger than 0.5. 
 
-```{r}
+```{r, warning = FALSE}
 # predict() the probability of high_use
 probabilities <- predict(m2, type = "response")
 
