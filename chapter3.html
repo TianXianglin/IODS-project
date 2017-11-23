@@ -323,12 +323,6 @@ summary(m1)</code></pre>
 <p>As we are working with a logistic regression, we can interpret the odds ratios for non-binary variables as odds ratios between a unit change vs. no change in the corresponding explanatory variable. Thus the odds ratio of “goout”, 2.0, can be interpreted as the ratio between the odds of someone who goes to one more party being a heavy drinker and the odds of someone who doesn’t go to that party being a heavy drinker.</p>
 <p>Note also that as all of the odds ratios calculated are higher than one, all our chosen variables are positively associated with high alcohol consumption.</p>
 <p>From the confidence intervals we can see that all the intervals of all the statistically significant variables do not include zero, but the interval for “failures” does. That is, the effect of this variable on the likelihood of high alcohol consumption is statistically indifferent from zero.</p>
-<pre class="r"><code># compute odds ratios (OR)
-OR1 &lt;- coef(m1) %&gt;% exp
-
-# compute confidence intervals (CI)
-CI1 &lt;- confint(m1) %&gt;% exp</code></pre>
-<pre><code>## Waiting for profiling to be done...</code></pre>
 <pre class="r"><code># print out the odds ratios with their confidence intervals
 cbind(OR1, CI1)</code></pre>
 <pre><code>##                    OR1       2.5 %     97.5 %
@@ -438,7 +432,7 @@ cv &lt;- cv.glm(data = alc, cost = loss_func, glmfit = m2, K = 10)
 
 # average number of wrong predictions in the cross validation
 cv$delta[1]</code></pre>
-<pre><code>## [1] 0.2120419</code></pre>
+<pre><code>## [1] 0.2146597</code></pre>
 <p>The average number of wrong predictions in the cross validation is 0.22 which is smaller than the 0.26 error in the model from DataCamp exercises. Thus my model has a slightly better test set performance than the example model.</p>
 </div>
 </div>
