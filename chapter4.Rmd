@@ -7,7 +7,9 @@ output: html_document
 
 # Chapter 4: Clustering and classification
 
-## RStudio exercise 4: Data analysis
+## RStudio exercise 4: Data analysis and wrangling
+
+## Data analysis
 
 
 ```{r, include=FALSE}
@@ -345,7 +347,7 @@ plot_ly(x = matrix_product$LD1, y = matrix_product$LD2, z = matrix_product$LD3, 
 ```
 
 
-## RStudio exercise 4: Data wrangling
+## Data wrangling
 
-You can find my [preprocessed data set]() and the [data wrangling R script]() from my [GitHub repository.](https://github.com/anorring/IODS-project/tree/master/data)
+You can find my [preprocessed data set](https://github.com/anorring/IODS-project/blob/master/human.csv) and the [data wrangling R script](https://github.com/anorring/IODS-project/blob/master/data/create_human.R) from my [GitHub repository.](https://github.com/anorring/IODS-project/tree/master/data)
 
