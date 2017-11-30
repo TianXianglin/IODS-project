@@ -120,7 +120,7 @@ join_by <- c("Country")
 # Join the two datasets by the selected identifier:
 human <- inner_join(hd, gii, by = join_by)
 
-# Glimpse at the data:
+# Glimpse at the data to make sure that we have 195 observations and 19 variables:
 glimpse(human)
 
 # Lastly, we'll save the joined and modified data set to the data folder. In order not to run into working directory
@@ -168,14 +168,16 @@ str_replace(human$GNI, pattern=",", replace ="") %>% as.numeric(human$GNI)
 
 ### 2. Excluding unneeded variables:
 
-# The data set is quite large and it includes some variables that we do not make use of. We can exclude these in the
-#   following way:
+# We want to exclude some of the variables by choosing the ones to keep and keeping only those:
 
 # columns to keep
 keep <- c("Country", "Edu2.FM", "Labo.FM", "Life.Exp", "Edu.Exp", "GNI", "Mat.Mor", "Ado.Birth", "Parli.F")
 
 # select the 'keep' columns
 human <- select(human, one_of(keep))
+
+# Now we should have 195 observations on 9 variables:
+glimpse(human)
 
 ####################################################################
 
@@ -212,8 +214,12 @@ last <- nrow(human_) - 7
 # choose everything until the last 7 observations
 human_ <- human_[1:last, ]
 
-#Check that we removed the regions and that the last country is Niger:
+#Check that we removed the regions and that the last country is Niger and that we have 155 observations for 9 variables:
 human_$Country
+glimpse(human_)
+
+# Save the data set:
+write.table(human_, file = "human.csv", sep = ",", col.names = TRUE)
 
 ####################################################################
 
@@ -223,7 +229,7 @@ human_$Country
 rownames(human_) <- human_$Country
 
 # As is removing the Country variable:
-human_ <- select(human, -Country)
+human_ <- select(human_, -Country)
 
 #Glimpse at the data to make sure that we have the correct number of observations and variables, 155 and 8 
 #   respectively:
