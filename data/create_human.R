@@ -2,11 +2,15 @@
 ### Author: Anni Norring                                         ###
 ### Date: 24.11.2017 						                                 ###
 ### Content: This script contains the R code for RStudio         ###
-###         Excercise 4 in IODS 2017. 						               ###
+###         Excercise 4 and 5 in IODS 2017.				               ###
 ####################################################################
 
+# Access all the needed libraries:
+library(dplyr)
+library(stringr)
+
 ####################################################################
-###                     DATA WRANGLING                           ###
+###          DATA WRANGLING for RStudio Excercise 4              ###
 ####################################################################
 
 ### Part 2: Read the data into R
@@ -52,12 +56,12 @@ colnames(gii)
 # Let's start with the names of variables in the hd dataset: 
 
 colnames(hd)[1] <- "HDIrank"
-colnames(hd)[2] <- "country"
+colnames(hd)[2] <- "Country"
 colnames(hd)[3] <- "HDI"
-colnames(hd)[4] <- "explife"
-colnames(hd)[5] <- "expschool"
-colnames(hd)[6] <- "meanschool"
-colnames(hd)[7] <- "GNIpercap"
+colnames(hd)[4] <- "Life.Exp"
+colnames(hd)[5] <- "Edu.Exp"
+colnames(hd)[6] <- "Edu.Mean"
+colnames(hd)[7] <- "GNI"
 colnames(hd)[8] <- "diffGNIrankHDIrank"
 
 # Check the new names:
@@ -67,15 +71,15 @@ colnames(hd)
 # Then change the names of variables in the gii dataset:
 
 colnames(gii)[1] <- "GIIrank"
-colnames(gii)[2] <- "country"
+colnames(gii)[2] <- "Country"
 colnames(gii)[3] <- "GII"
-colnames(gii)[4] <- "matmor"
-colnames(gii)[5] <- "teenbirth"
-colnames(gii)[6] <- "mpF"
-colnames(gii)[7] <- "edu2F"
-colnames(gii)[8] <- "edu2M"
-colnames(gii)[9] <- "labF"
-colnames(gii)[10] <- "labM"
+colnames(gii)[4] <- "Mat.Mor"
+colnames(gii)[5] <- "Ado.Birth"
+colnames(gii)[6] <- "Parli.F"
+colnames(gii)[7] <- "Edu2.F"
+colnames(gii)[8] <- "Edu2.M"
+colnames(gii)[9] <- "Labo.F"
+colnames(gii)[10] <- "Labo.M"
 
 # Check the new names:
 
@@ -89,13 +93,13 @@ colnames(gii)
 #   with secondary education in each country. The second is a similar ratio for labor force participation. We will 
 #   call these new variables edu and lab respectively.
 
-edu <- gii$edu2F/gii$edu2M
-lab <- gii$labF/gii$labM
+Edu2.FM <- gii$Edu2.F/gii$Edu2.M
+Labo.FM <- gii$Labo.F/gii$Labo.M
 
 # Include the new variables in the dataset:
 
-gii$edu <- edu
-gii$lab <- lab
+gii$Edu2.FM <- Edu2.FM
+gii$Labo.FM <- Labo.FM
 
 # Check that everything is ok:
 colnames(gii)
@@ -110,11 +114,8 @@ head(gii)
 # We will join the data sets using inner.join() function as in the DataCamp exercises. With this function we will end
 #   up with a data set that contains only the students who answered the questionnaires on both classes. 
 
-# Access the dplyr library:
-library(dplyr)
-
 # Choose country as the identifier to identify the countries present in both rankings:
-join_by <- c("country")
+join_by <- c("Country")
 
 # Join the two datasets by the selected identifier:
 human <- inner_join(hd, gii, by = join_by)
@@ -133,4 +134,123 @@ setwd("\\\\ATKK/home/a/awsalo/Documents/GitHub/IODS-project")
 write.table(human, file = "human.csv", sep = ",", col.names = TRUE)
 
 ####################################################################
+
+####################################################################
+###          DATA WRANGLING for RStudio Excercise 5              ###
+####################################################################
+
+### Read the data into R:
+
+# Check the current working directory:
+getwd()
+
+# Set the working directory to be the IODS project folder:
+setwd("\\\\ATKK/home/a/awsalo/Documents/GitHub/IODS-project")
+
+# Read the data into R:
+human <- read.table("human.csv", header = TRUE, sep = ",")
+
+# Check that the data is ok and has the right dimensions: 195 observations and 19 variables.
+glimpse(human)
+
+####################################################################
+
+### 1. Transforming GNI to numeric:
+
+# Start by looking at the structure of the GNI column in 'human'. We can see that this variable is in string form.
+str(human$GNI)
+
+# Make it numeric by removing the commas from GNI and using the pipe operator for printing a numeric version of the
+#   data:
+str_replace(human$GNI, pattern=",", replace ="") %>% as.numeric(human$GNI)
+
+####################################################################
+
+### 2. Excluding unneeded variables:
+
+# The data set is quite large and it includes some variables that we do not make use of. We can exclude these in the
+#   following way:
+
+# columns to keep
+keep <- c("Country", "Edu2.FM", "Labo.FM", "Life.Exp", "Edu.Exp", "GNI", "Mat.Mor", "Ado.Birth", "Parli.F")
+
+# select the 'keep' columns
+human <- select(human, one_of(keep))
+
+####################################################################
+
+### 3. Removing missing values:
+
+# We can check if there are missing values in the data by taking a completeness indicator of the data:
+
+# print out the data along with a completeness indicator as the last column
+data.frame(human[-1], comp = complete.cases(human))
+
+# As we can see from the print out, there are a number of NA values, indicated by the value FALSE in the completeness
+#   indicator. Next we want to filter out all rows that contain NA values:
+
+# filter out all rows with NA values
+human_ <- filter(human, complete.cases(human))
+
+# From glimpsing the data, we can see that there are now 162 observations on 9 variables in our data set. 
+glimpse(human_)
+
+####################################################################
+
+### 4. Removing observations that are related to regions instead of countries:
+
+# The variable "Country" includes also regions, which can be easily seen if we print out the column:
+human_$Country
+
+# From the print out we can see that the last 7 observations in the data set refer to regions instead of countries.
+#   We can remove these by defining the last observation that we want to keep in the data set as the last one referring
+#   to a country and then by choosing all the observations before that to be included in the data:
+
+# define the last indice we want to keep
+last <- nrow(human_) - 7
+
+# choose everything until the last 7 observations
+human_ <- human_[1:last, ]
+
+#Check that we removed the regions and that the last country is Niger:
+human_$Country
+
+####################################################################
+
+### 5. Finishing touches: define country names as row names and remove the country name columm before saving the data
+
+# Defining countries as rownames is easy:
+rownames(human_) <- human_$Country
+
+# As is removing the Country variable:
+human_ <- select(human, -Country)
+
+#Glimpse at the data to make sure that we have the correct number of observations and variables, 155 and 8 
+#   respectively:
+glimpse(human_)
+
+# Everything as it should be! Last, let's overwrite the previous version of the "human" data with our current version:
+
+# Set the working directory to be the IODS project folder:
+setwd("\\\\ATKK/home/a/awsalo/Documents/GitHub/IODS-project")
+
+# Save the data set:
+write.table(human_, file = "human.csv", sep = ",", col.names = TRUE, row.names = TRUE )
+
+# Read the data once again to R just to make sure that it looks good:
+read.table(human_, file = "human.csv", sep = ",", col.names = TRUE, row.names = TRUE )
+
+glimpse(human_)
+
+# Everything seems to be okay.
+
+
+
+
+
+
+
+
+
+
 
