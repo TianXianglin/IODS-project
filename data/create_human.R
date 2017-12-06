@@ -164,6 +164,10 @@ str(human$GNI)
 #   data:
 str_replace(human$GNI, pattern=",", replace ="") %>% as.numeric(human$GNI)
 
+human$GNI <- as.numeric(human$GNI)
+
+glimpse(human)
+
 ####################################################################
 
 ### 2. Excluding unneeded variables:
@@ -173,8 +177,9 @@ str_replace(human$GNI, pattern=",", replace ="") %>% as.numeric(human$GNI)
 # columns to keep
 keep <- c("Country", "Edu2.FM", "Labo.FM", "Life.Exp", "Edu.Exp", "GNI", "Mat.Mor", "Ado.Birth", "Parli.F")
 
-# select the 'keep' columns
-human <- select(human, one_of(keep))
+# select the 'keep' columns - note that here we have to use the specifier dplyr:: in front of select(), otherwise the
+#   function will return an error. This is because select() is included in other packages also.
+human <- dplyr::select(human, one_of(keep))
 
 # Now we should have 195 observations on 9 variables:
 glimpse(human)
@@ -218,9 +223,6 @@ human_ <- human_[1:last, ]
 human_$Country
 glimpse(human_)
 
-# Save the data set:
-write.table(human_, file = "human.csv", sep = ",", col.names = TRUE)
-
 ####################################################################
 
 ### 5. Finishing touches: define country names as row names and remove the country name columm before saving the data
@@ -229,7 +231,7 @@ write.table(human_, file = "human.csv", sep = ",", col.names = TRUE)
 rownames(human_) <- human_$Country
 
 # As is removing the Country variable:
-human_ <- select(human_, -Country)
+human_ <- dplyr::select(human_, -Country)
 
 #Glimpse at the data to make sure that we have the correct number of observations and variables, 155 and 8 
 #   respectively:
@@ -244,9 +246,9 @@ setwd("\\\\ATKK/home/a/awsalo/Documents/GitHub/IODS-project")
 write.table(human_, file = "human.csv", sep = ",", col.names = TRUE, row.names = TRUE )
 
 # Read the data once again to R just to make sure that it looks good:
-read.table(human_, file = "human.csv", sep = ",", col.names = TRUE, row.names = TRUE )
+human <- read.table(file = "human.csv", sep = ",", header = TRUE)
 
-glimpse(human_)
+glimpse(human)
 
 # Everything seems to be okay.
 
