@@ -17,6 +17,7 @@ You can find my [preprocessed data set](https://github.com/anorring/IODS-project
 
 
 ```{r, include=FALSE}
+
 # Access the needed libraries:
 library(dplyr)
 library(tidyr)
@@ -25,6 +26,8 @@ library(boot)
 library(MASS)
 library(tidyverse)
 library(corrplot)
+library(GGally)
+library(FactoMineR)
 ```
 
 ### 1. Data
@@ -37,9 +40,202 @@ We will start by loading the preprocessed "human" data into R and taking a look 
 
 ```{r}
 # load the data
-human <- read.table("http://s3.amazonaws.com/assets.datacamp.com/production/course_2218/datasets/human2.txt", sep = ",", col.names = TRUE, row.names = TRUE)
+human <- read.table(file = "human.csv", sep = ",", header = TRUE)
 
 # glimpse at the dataset
 glimpse(human)
 ```
+
+From glimpsing the data we can see that it contains 155 observations on 8 variables. We can also see that all of the variables have numerical values. Every row in the data is associated with one country, thus we have observations from 155 different countries. From the webpages linked above we can see that most of the variables are observed in the year 2015, but the variable that measures the secondary education is measured over years 2005-2015. 
+
+|Variable|Definition
+|---|------------------------------------------------------------------------------------|
+|Edu2.FM |The ratio between the shares of female and male population with at least some secondary education|
+|Labo.FM|The ratio between the shares of female and male labour force participation rate|
+|Edu.Exp|Expected years of schooling, years|
+|Life.Exp|Life expectancy at birth, years| 
+|GNI|Gross national income (GNI) per capita, 2011 PPP $| 
+|Mat.Mor|Maternal mortality ratio, deaths per 100,000 live births|
+|Ado.Birth|Adolescent birth rate, births per 1,000 women ages 15–19|
+|Parli.F|Share of seats in parliament, % held by women|
+
+
+### 2. Overview of the data 
+
+From the summary of the variables we can see minimum, maximum, median and mean values as well as the 1st and 3rd quartiles of the variables. By looking at the minimum and maximum values we can see that the countries in our data set differ quite a lot with respect to all eight variables. 
+
+```{r}
+summary(human)
+```
+
+Now, in order to gain an oversight on the distributions of the variables and the relationships between the different variables, we can draw a ggpairs-plot. This plot contains so much information! We can for example immediately see, that most of the countries in our sample mostly exhibit very low rates of maternal mortality. Only the distribution of expected years of education appears to be quite close to the normal distribution, the distributions of other variables are very clearly skewed or have high kurtosis such as the distribution of Edu2.FM. 
+
+```{r}
+ggpairs(human)
+```
+
+From the above plot we can study the correlations between the variables, but we can do this another way also. We can  study and visualize the correlations between the different variables with the help of a correlations matrix and a correlations plot.
+
+```{r}
+# First calculate the correlation matrix and round it so that it includes only two digits:
+cor_matrix<-cor(human) %>% round(digits = 2)
+
+# Print the correlation matrix:
+cor_matrix
+
+```
+
+
+```{r}
+# Visualize the correlation matrix with a correlations plot:
+corrplot(cor_matrix, method="circle", type = "upper", cl.pos = "b", tl.pos = "d", tl.cex = 0.6)
+
+```
+
+From the plot above, we can clearly and easily see the correlations between the variables. Note for example that expected years of education are highly positively correlated with life expectancy. This most probably is related to the fact that these both are correlated positively with the countries' GNI. Also maternal mortality and adolescent birth rate are strongly positively correlated, but here the undertone is completely the opposite and of more sinister nature. In those countries, were adolescent girls are more likely to be mothers, i.e. they don't have access to contraceptives or are forced to marry young, expectant mothers are also less likely to have access to good quality health care. These countries are likely to be low-income countries, which is also confirmed by the correlations plot. All in all, it's clear from the plot that high maternal mortality and adolescent birth rate are signals of other problems in a country also. Those countries also have lower education and life expectancies, less income per capita and less gender equality in education. Interestingly, share of women in the parliament and the difference between labor force participation between the sexes appear to be not that much correlated with the other variables. 
+
+### 3. Principal component analysis on non-standardized data
+
+In this sectin we will performa principal component analysis (PCA) using the singular value decomposition (SVD), which is the most important tool for reducing the number of dimensions in multivariate data. Crucially, we will perform PCA on non-standardized data. Recall from part 2 that the values taken by the variables are very different in magnitude. Especially the GNI takes very large values compared to the other variables. We will see why the standardization of data is so important when using PCA.
+
+Recall that in PCA the first principal component captures the maximum amout variance from the the features in the orignal data, the second PC captures the maximum amount of variability left from the first PC, the third captures the maximum amount of variability left from the second PC and so on. All principal components are uncorrelated and each successive component is less important in terms of captured variance. 
+
+By printing the results of the PCA we can see that standard deviations (or variablity) of the principal components are very different in magnitude. From the summary of the PCA results and the percentages of variance captured by each PC we can see that almost all of the variability in the original features is captured by the first principal component. A good hunch is that we will run into trouble in plotting the biplot.
+
+```{r}
+# perform principal component analysis (with the SVD method) and print out the results
+pca_human <- prcomp(human)
+pca_human
+
+# create and print out a summary of pca_human
+s <- summary(pca_human)
+s
+
+# calculate rounded percentages of variance captured by each PC and print out the percentages of variance
+pca_pr <- round(100*s$importance[2,], digits = 1) 
+pca_pr
+```
+
+This is indeed the case. Recall that a biplot includes a scatter plot between the first two PC's and the original features and their relationships with both each other and the principal components. As all variability is captured by PC1 and none by PC2, the realtionships between the original features and the principal components do not really show. Indeed, as the length of the arrows in the biplot are proportional to the standard deviations of the original features, we only see in the biplot an arrow representing GNI, that took values many times larger than the other variables. Summa summarum, there isn't much we can learn from this plot.
+
+```{r}
+# create object pc_lab to be used as axis labels
+pc_lab <- paste0(names(pca_pr), " (", pca_pr, "%)")
+
+# draw a biplot
+biplot(pca_human, cex = c(0.8, 1), col = c("grey40", "deeppink2"), xlab = pc_lab[1], ylab = pc_lab[2], main = "Biplot of the two principal components of the unscaled human data")
+```
+
+
+
+### 4. Principal component analysis on standardized data
+
+Next we will perform similar analysis on the standardized data. 
+
+Start by standardizing the data. This is very easily done using the scale() function. Recall that standardizing is equal to taking the difference between the observation of the variable and the mean of the variable and dividing it by the standard deviation of the variable. From the summary of the standardized variables we can now see that the values of each variable are much more in line with each other than previously. 
+
+```{r}
+# standardize the variables
+human_std <- scale(human)
+
+# print out summaries of the standardized variables
+summary(human_std)
+```
+
+Now we can perform the principal component analysis and get some sensible results. From the results we can immediately see that they are comparable. We can also see that the variability captured by each of the PC is much more evenly distributed now. Still, it is clear that PC1 is the most important one, as it captures 53,6 % of the variance in the original features.
+
+
+```{r}
+# perform principal component analysis (with the SVD method) and print out the results
+pca_human_std <- prcomp(human_std)
+pca_human_std
+
+# create and print out a summary of pca_human
+s_std <- summary(pca_human_std)
+s_std
+
+# calculate rounded percentages of variance captured by each PC and print out the percentages of variance
+pca_pr_std <- round(100*s_std$importance[2,], digits = 1) 
+pca_pr_std
+```
+
+Let's see how our results now look in the biplot. 
+
+```{r}
+# create object pc_lab to be used as axis labels
+pc_lab_std <- paste0(names(pca_pr_std), " (", pca_pr_std, "%)")
+
+# draw a biplot
+biplot(pca_human_std, cex = c(0.8, 1), col = c("grey40", "deeppink2"), xlab = pc_lab_std[1], ylab = pc_lab_std[2], main = "Biplot of the two principal components of the scaled human data")
+```
+
+From the two biplots above we can clearly see that standardizing the variables has a big effect on the results. The first biplot with unscaled data gave us very little information on the original features. Recall that PCA is sensitive to the relative scaling of the original features and assumes that features with larger variance are more important than features with smaller variance. This is why standardizing the data is so important. 
+
+Our data set has observations on 8 different variables, that is, it has 8 dimensions. Just by looking at all the different plots in say the ggpairs plot above, it could be very hard to tease out interesting details in the data. Not that much stands out when you have a heapload of scatterplots! But with PCA and a biplot, we can e.g. note that there is something different about say Rwanda, that is a lonely outlier in out plot. We can also immediately see that three of our eight variables (Parl.F, Labo.FM and GNI) are not correlated with the other variables and the first PC, but instead they are highly positively correlated with the second PC (the angle between the arrows and the PC2 axis is very small). The five other variables are correlated with the first PC.
+
+### 5. Interpretating the two principal components
+
+From the second biplot we can clearly see a confirmation for what we saw in the correlations plot: share of female parliamentary representation, differences in female and male labor force participation and GNI per capita are not really correlated with the other five variables. Also note that the length of the arrow of GNI is much shorter than the arrows of the others (recall that the length of the arrows is proportional to the standard deviations of the features).
+
+We can also see that the these three variables are quite clearly correlated with the second PC, whereas the other six are correlated with the first PC. Also note that the length of the arrows of these six variables is in general longer than that of the three correlated with PC2. This reflects the difference in their relative importance.
+
+### 6. Multiple Correspondence Analysis 
+
+*Load the tea dataset from the package Factominer. Explore the data briefly: look at the structure and the dimensions of the data and visualize it. Then do Multiple Correspondence Analysis on the tea data (or to a certain columns of the data, it’s up to you). Interpret the results of the MCA and draw at least the variable biplot of the analysis. You can also explore other plotting options for MCA. Comment on the output of the plots.*
+
+Start by installing the Factominer package and accessing the library (code not shown here). Then download the "tea" dataset and take a glimpse on the data. We have 300 observations on 36 variables. Note that all the variables are factor or categorical variables, which is essential for MCA.
+
+```{r}
+# load the data
+data("tea")
+
+# glimpse at the dataset
+glimpse(tea)
+```
+
+We will follow the DataCamp exercises and restrict our analysis on six columns in the dataset. We will thus have have 300 observations on 6 variables. 
+
+```{r, warning=FALSE}
+# column names to keep in the dataset
+keep_columns <- c("Tea", "How", "how", "sugar", "where", "lunch")
+
+# select the 'keep_columns' to create a new dataset
+tea_time <- dplyr::select(tea, one_of(keep_columns))
+
+# look at the summaries and structure of the data
+glimpse(tea_time)
+str(tea_time)
+summary(tea_time)
+```
+
+We can visualize the data using bar plots. From the plots we can for example note that most tea drinkers surveyed here completely miss the point of drinking tea: Earl Grey from a tea bag bought from a chain store is basically an insult to tea.
+
+```{r, warning=FALSE}
+# visualize the dataset
+gather(tea_time) %>% ggplot(aes(value)) + facet_wrap("key", scales = "free") + geom_bar() + theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8))
+```
+
+Next we want to do a Multiple Correspondence Analysis (MCA) on the tea data. Recall that MCA is a method to analyze qualitative data and it can be used to detect patterns or structure in the data as well as in dimension reduction.
+
+The MCA will produce a matrix of two-way cross-tabulations between all the variables in the dataset, and then present the information of the cross-tabulations in a clear graphical form. In the MCA factor maps the variables are drawn on the first two dimensions discovered in the MCA. In interpreting the graphical results recall that the distance between the variable categories gives a measure of their similarity.
+
+The default plots in a sense make groups of the observations and gove some indication on their relationships. In the second plot we have all the observations plotted. In the first plot these are categorized according to the value of the observation. In the third plot the picture is simplified even more by combining all the observations on a single variable into one data point. From the default plots we can e.g. see that variables "where" (where is tea bought from) and "how" (is tea bought in bags or unpackaged form) are closely related, which is not surprising. These two variables are however distinct from the other four variables. 
+
+```{r}
+# multiple correspondence analysis
+mca <- MCA(tea_time)
+
+# summary of the model
+summary(mca)
+
+```
+
+Next we can make the first of the above plots a bit more informative by adding the argument habillage = "quali". This argument adds a color indicating the observations that are on the same variable. From this plot we can easily see for example the relationship between where tea is bought and in what form it is bought. 
+
+```{r}
+# visualize MCA
+plot(mca, invisible=c("ind"), habillage = "quali")
+```
+
+
 
