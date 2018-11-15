@@ -1,0 +1,245 @@
+---
+title: "Chapter 3: Logistic regression"
+author: "Anni Norring"
+date: "16.11.2017"
+output: html_document
+---
+
+# Chapter 3: Logistic regression
+
+## RStudio exercise 3: Data wrangling and analysis
+
+## Data wrangling
+
+You can find my [preprocessed data set](https://github.com/anorring/IODS-project/blob/master/alc.csv) and the [data wrangling R script](https://github.com/anorring/IODS-project/blob/master/data/create_alc.R) from my [GitHub repository.](https://github.com/anorring/IODS-project/tree/master/data)
+
+## Analysis
+
+### 2. Data
+
+The alc data set contains data on student alcohol consumption and it is a joined data set from two data sets included in the Student Performance Data. You can learn more about the data [here](https://archive.ics.uci.edu/ml/datasets/Student+Performance). 
+
+The data contains the combined results from two surveys conducted on students on mathematics and portuguese classes. This data was merged in the data wrangling part of this exercise. The variables not used to join the data sets were combined by averaging. Because we are interested in studying the alcohol use of students, we have defined two new variables:
+
+- "alc_use" which is the average of "Dalc" and "Walc", i.e. alcohol use during working days and during weekends. It takes values that are natural numbers. 
+- "high_use" which is TRUE if "alc_use" is higher than 2 and FALSE otherwise. That is, it is a dichotomous variable. 
+
+The data contains 382 observations on 35 variables. Some of the values are numerical, some dichotomous, but there are also variables with different structures.  
+
+```{r, include=FALSE}
+# Access the needed libraries:
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(boot)
+```
+
+```{r}
+alc <- read.table("alc.csv", header = TRUE, sep = ";")
+glimpse(alc)
+
+```
+
+
+### 3. Hypothesis
+
+Now we will present a few hypothesis about the possible links between some variables in the data and alcohol consumption. First, as in the DataCamp exercises, it seems like a plausible thing to assume that sex, absences and failures are correlated with alcohol consumption. As a fourth candidate for we will choose going out (goout), with the idea being that students who go out partying a lot, also end up consuming more alcohol.
+
+Let's formally state the hypothesis:
+
+1. Male students are more likely to consume more alcohol than female students.
+2. Students that consume more alcohol are more likely to gain absences than those who consume less.
+3. Students that consume more alcohol are more likely to fail courses than those who consume less.
+4. Students that go out more are more likely to consume more alcohol. 
+
+All four hypothesis are associated with a positive correlation. 
+
+
+### 4. The distributions of the chosen variables and their relationships with alcohol consumption
+
+Now we want get some idea on how the chosen variables are distributed and what could be their relaionship with alcohol consumption.
+
+#### Bar plots
+
+Let's start by taking a look at the distributions of the chosen variables and the two variables of interest. From the bar plots it is easy to see that in our sample alcohol consumption is strongly skewed towards low consumption and that the number of students who use a lot of alcohol is less than half of those students who use alcohol in a moderate manner. From the plots we can also see that there are slightly more female than male respondents, that absences are strongly skewed towards little of no absences with a few outliers, that most students pass their courses and that going out is the only variable that follows a distribution that even remotely resembles a normal distribution. 
+
+```{r}
+ggplot(data = alc, aes(x = alc_use)) + geom_bar()
+ggplot(data = alc, aes(x = high_use)) + geom_bar()
+ggplot(data = alc, aes(x = sex)) + geom_bar()
+ggplot(data = alc, aes(x = absences)) + geom_bar()
+ggplot(data = alc, aes(x = failures)) + geom_bar()
+ggplot(data = alc, aes(x = goout)) + geom_bar()
+```
+
+We can also easily draw a plot that emphasizes the differences in alcohol consumption between male and female students. The plot offers support for our first hypothesis.
+
+```{r}
+g2 <- ggplot(data = alc, aes(x = high_use))
+g2 + geom_bar() + facet_wrap("sex")
+
+```
+
+#### Cross-tabulations
+
+First, we ignore gender, and cross-tabulate alcohol consumption to the means of the other three variables. We can see that the means of the other three variables could show an upward sloping trend. This is indeed what we would expect on the basis of our hypothesis.
+
+```{r}
+alc %>% group_by(alc_use) %>% summarise(count = n(), mean_absences = mean(absences), mean_failures = mean(failures), mean_goout = mean(goout))
+```
+
+If we include sex in the grouping variables, the trends in the means become somewhat more pronounced. 
+
+```{r}
+alc %>% group_by(alc_use, sex) %>% summarise(count = n(), mean_absences = mean(absences), mean_failures = mean(failures), mean_goout = mean(goout))
+```
+
+We can also do the cross-tabulations with "high-use" as the variable of interest. Here the difference between means for students that are heavy users of alcohol and those that are not, are quite evident.
+
+```{r}
+alc %>% group_by(high_use, sex) %>% summarise(count = n(), mean_absences = mean(absences), mean_failures = mean(failures), mean_goout = mean(goout))
+```
+
+
+#### Box plots
+
+We will next draw box plots of "high_use" as a dependent variable. We will use "sex" as a colour visualization and the other three as explanatory variables. From the box plots we can see that our hypothesis nro 1, 2 and 4 seem plausible; high alcohol consumption appears to be more likely associated with the respondent being a male with relatively more absences and parties. However the box plot for failures is a bit perplexing. Perhaps because the variable was so heavily skewed to zero, the plot appears to suggest that there are only some outliers that are different fom zero. 
+
+```{r}
+g1 <- ggplot(alc, aes(x = high_use, col = sex, y = absences))
+g1 + geom_boxplot() + ylab("absences")
+
+g2 <- ggplot(alc, aes(x = high_use, col = sex, y = failures))
+g2 + geom_boxplot() + ylab("failures")
+
+g3 <- ggplot(alc, aes(x = high_use, col = sex, y = goout))
+g3 + geom_boxplot() + ylab("goout")
+
+```
+
+### 5. Logistic regression
+
+In this part we will use logistic regression to gain more solid knowledge on the effect our chosen variables may have on the target variable. Here the target variable is the binary high/low alcohol consumption. 
+
+```{r}
+# find the model with glm()
+m1 <- glm(high_use ~ sex + absences + failures + goout, data = alc, family = "binomial")
+```
+
+From the summary of the model we can immediately see that "failures" indeed are not statistically significant, which is in line with the box plot. Other than that, the results of the regression are in line with our hypothesis. Male students are more likely to be heavy users of alcohol, as are those with more absences and those who go out more. 
+
+```{r}
+# print out a summary of the model
+summary(m1)
+```
+
+#### Odds ratios and confidence intervals
+
+Next we will present and interpret the coefficients of the model as odds ratios and calculate their confidence intervals. 
+
+Recall that the odds ratio is defined as the ratio of the odds of Y=TRUE for individuals with property X to the odds of Y=TRUE for individuals WITHOUT property X. Here Y would be high consumption of alcohol and X e.g. the respondent being male. In the ratios we have computed, the odds ratio for variable sexM thus gives the ratio the odds of a male being a heavy drinker to the odds of a female being a heavy drinker. We can see that the ratio is more than 2.5, or that men are more than 2.5 times more likely to be heavy drinkers. 
+
+As we are working with a logistic regression, we can interpret the odds ratios for non-binary variables as odds ratios between a unit change vs. no change in the corresponding explanatory variable. Thus the odds ratio of "goout", 2.0, can be interpreted as the ratio between the odds of someone who goes to one more party being a heavy drinker and the odds of someone who doesn't go to that party being a heavy drinker. 
+
+Note also that as all of the odds ratios calculated are higher than one, all our chosen variables are positively associated with high alcohol consumption. 
+
+From the confidence intervals we can see that all the intervals of all the statistically significant variables do not include zero, but the interval for "failures" does. That is, the effect of this variable on the likelihood of high alcohol consumption is statistically indifferent from zero.
+
+
+```{r, warning = FALSE}
+# compute odds ratios (OR)
+OR1 <- coef(m1) %>% exp
+
+# compute confidence intervals (CI)
+CI1 <- confint(m1) %>% exp
+
+```
+
+
+```{r}
+# print out the odds ratios with their confidence intervals
+cbind(OR1, CI1)
+```
+
+
+### 6. Predictions
+
+In this part, we will explore the predictive power of a model with only statistically significant relationship with high alcohol consumption. Thus we will drop failures and fit a new model:
+
+```{r}
+m2 <- glm(high_use ~ sex + absences + goout, data = alc, family = "binomial")
+
+summary(m2)
+```
+
+Now we will use the predict() function to make predictions from this model. We start by adding two columns to our data set: "probability" with the predicted probabilities and "prediction" which takes value TRUE if the value of "probability" is larger than 0.5. 
+
+```{r, warning = FALSE}
+# predict() the probability of high_use
+probabilities <- predict(m2, type = "response")
+
+# add the predicted probabilities to 'alc'
+alc <- mutate(alc, probability = probabilities)
+
+# use the probabilities to make a prediction of high_use
+alc <- mutate(alc, prediction = probability>0.5)
+
+# see the last ten original classes, predicted probabilities, and class predictions
+select(alc, absences, sex, goout, high_use, probability, prediction) %>% tail(10)
+
+# tabulate the target variable versus the predictions
+table(high_use = alc$high_use, prediction = alc$prediction)
+
+# tabulate the target variable versus the predictions with margings:
+table(high_use = alc$high_use, prediction = alc$prediction) %>% prop.table() %>% addmargins()
+```
+
+From the 2x2 cross tabulation of predictions versus the actual values we can see that our model is not perfect: in 15 cases it predicted a respondent to be a heavy user, when in fact the user was not, and vice versa in 65 cases. On the other hand, in 302 cases the prediction is correct. From the second table we can see the share of correct and incorrect predictions. In 21 % of the cases the prediction was incorrect, which seems like a reasonable fit.
+
+We can also see this in a graph that plots the true values against the predictions:
+
+```{r}
+# initialize a plot of 'high_use' versus 'probability' in 'alc'
+g <- ggplot(alc, aes(x = probability, y = high_use, col = prediction))
+
+# define the geom as points and draw the plot
+g + geom_point()
+```
+
+We still want to compute the total proportion of inaccurately classified individuals, or the the training error. For this purpose we will define a loss function and then calculate the average number of wrong predictions in the training data. 
+
+```{r}
+# define a loss function (mean prediction error)
+loss_func <- function(class, prob) {
+  n_wrong <- abs(class - prob) > 0.5
+  mean(n_wrong)
+}
+
+# call loss_func to compute the average number of wrong predictions in the (training) data
+loss_func(class = alc$high_use, prob = 0)
+
+loss_func(class = alc$high_use, prob = 1)
+
+loss_func(class = alc$high_use, alc$probability)
+```
+
+That is, the training error is appr. 0.21 or 21 %. This seems like a reasonable fit.
+
+
+### 7. Cross-validation
+
+Cross-validation is a method of testing a predictive model on unseen data. In cross-validation, the value of a loss function is computed on data not used for finding the model. Cross-validation gives a good sense of the actual predictive power of the model. 
+
+```{r}
+# 10-fold cross-validation
+cv <- cv.glm(data = alc, cost = loss_func, glmfit = m2, K = 10)
+
+# average number of wrong predictions in the cross validation
+cv$delta[1]
+```
+
+The average number of wrong predictions in the cross validation is 0.22 which is smaller than the 0.26 error in the model from DataCamp exercises. Thus my model has a slightly better test set performance than the example model. 
+
+
+
+

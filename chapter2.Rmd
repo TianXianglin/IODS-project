@@ -1,7 +1,168 @@
-# Insert chapter 2 title here
+---
+title: "Chapter 2: Regression and model validation"
+author: "Anni Norring"
+date: "9.11.2017"
+output: html_document
+---
 
-*Describe the work you have done this week and summarize your learning.*
+# Chapter 2: Regression and model validation
 
-- Describe your work and results clearly. 
-- Assume the reader has an introductory course level understanding of writing and reading R code as well as statistical methods
-- Assume the reader has no previous knowledge of your data or the more advanced methods you are using  
+## RStudio exercise 2: Data wrangling and analysis
+
+## Data wrangling
+
+You can find my [preprocessed data set](https://github.com/anorring/IODS-project/blob/master/learning2014.csv) and the [data wrangling R script](https://github.com/anorring/IODS-project/blob/master/data/create_learning2014.R) from my [GitHub repository.](https://github.com/anorring/IODS-project)
+
+## Analysis
+
+### 1. Data
+
+The learning2014 dataset has been collected as an international survey of approaches to learning (you can find more information on it from [here.](http://www.helsinki.fi/~kvehkala/JYTmooc/JYTOPKYS3-meta.txt)) during 3.12.2014 - 10.1.2015. It contains 166 observations on 7 variables. 
+
+```{r}
+learning2014 <- read.table("learning2014.csv", header = TRUE, sep = "\t")
+dim(learning2014)
+str(learning2014)
+```
+
+The variables are gender, age, attitude, deep, stra, surf and points. 
+
+|Variable|Definition|Value|
+|---|---|---|
+|age|age (in years) derived from the date of birth|integer|
+|gender|gender| M (Male), F (Female)|
+|attitude|global attitude toward statistics|1 to 5 on the Likert-scale|
+|deep|questions related to deep learning|natural number|
+|stra|questions related to strategic learning|natural number|
+|surf|questions related to surface learning|natural number|
+|points|exam points|integer|
+
+
+
+### 2. A more detailed view on the data
+
+#### A graphical overview:
+
+It seems like a fairly plausible assumption that a student's attitude towards statistics has a big impact on exam success. We can start by plotting the variables attitude and points as a twoway scatter plot with a color indicator for gender and regression lines. (I use option include=FALSE when accessing the libraries to remove the warning messages by R from the output.)
+
+```{r, include=FALSE}
+# Access the gglot2 library
+library(ggplot2)
+```
+
+
+```{r}
+
+# initialize plot with data and aesthetic mapping, define the visualization type (points), add a regression line and add a main title:
+p1 <- ggplot(learning2014, aes(x = attitude, y = points, col = gender)) + geom_point() + geom_smooth(method = "lm")  + ggtitle("Student's attitude versus exam points")
+
+# draw the plot
+p1
+```
+
+
+
+Next let's consider a more detailed plot describing the variables, their distributions and relationships. This plot contains a heapload of information! First, we can infact see that the hypothesis on the relation between attitude and exam points was plausible, as the correlation between points and attitude is indeed stonger than with points and any other variable.  
+
+```{r, include=FALSE}
+# access the GGally and ggplot2 libraries
+library(GGally)
+library(ggplot2)
+```
+
+
+```{r}
+# create a more advanced plot matrix with ggpairs()
+p <- ggpairs(learning2014, mapping = aes(col = gender, alpha = 0.3), lower = list(combo = wrap("facethist", bins = 20)))
+
+# draw the plot
+p
+
+```
+
+
+#### Summary of the variables
+
+From the summary of the data we can see the min, max, median and mean values as well as the 1st and 3rd quintiles of all the variables. One can note that the sample is biased towards female respondents, that the respondents are mostly in their early twenties and have a generally more positive than negative view of statistics as a discipline. The median and mean values of the learning variables deep, stra and surf show that the respondents are more likely to engage in deep learning than surface learning.
+
+```{r}
+summary(learning2014)
+```
+
+
+### 3. A regression model
+
+Next let's see if some of the hypothesis made above hold up against a bit more sophisticated analysis. We will consider exam points as the dependent variable and the aim is to fit a regression model to the data that would explain what affects the number of exam points.
+
+From the plots above, we can deduct that attitude, stra and surf have the highest correlations with points in absolute terms. Let's thus choose these as our explanatory variables and fit the following linear model with multiple explanatory variables:
+
+```{r}
+# create a regression model with multiple explanatory variables
+points_mmodel <- lm(points ~ attitude + stra + surf, data = learning2014)
+
+# print out a summary of the model
+summary(points_mmodel)
+
+```
+
+From the summary of the model we can see the results. Under "call" we can see a recap of the model. Under "residuals" the summary prints out important information on the residuals. Recall that the residuals of a linear regressin model are assumed to be normally distributed with a zero mean and a constant variance. We can see that the median is quite close to zero, but we should conduct further statistical tests to be certain that the mean is statistically indifferent from zero. 
+
+Under coefficients we have the estimated effects of the explanatory variables on the dependent variable, their standard errors, t-values and p-values. The last two values are maybe the most important, as they tell the value of the estimates. From the printout we can immediately see that only the effects of intercept and attitude on the dependent variable are statistically significant and different from zero. The effects stra and surf are not and should be removed from the model. 
+
+Let's then fit the model again without the two statistically insignificant variables, that is, as a simple linear regression:
+
+```{r}
+# create a regression model with multiple explanatory variables
+points_model <- lm(points ~ attitude, data = learning2014)
+
+# print out a summary of the model
+summary(points_model)
+```
+
+Now we can see that the median of residuals is smaller than in the multiple regression, which is a good thing. We can also see that both the effect of intercept and of attitude are now highly statistically significant, whereas before when we included also the other two variables, the intercept was slightly less significant.
+
+
+### 4. Interpreting the regression results
+
+From the summary of our simple linear regression model we can see that the estimated effect of attitude on points is 3.5255. This means that a change of one unit in attitude (and all other variables are held constant) corresponds to a 3.5255 increase in the exam points. Even more concretely, a student with an attitude score of 4 is expected to score 3.5255 points more on the exam than a student with an attitude score of 3. This result clearle validates the hypothesis made in part 2 of attitude towards statistics being an important predictor of success in the exam. 
+
+The "multiple R-squared" printed as a part of the summary gives the coefficient of determination, or the proportion of variance in the value of the dependent variable that is predicted by the model. In our model the intercept is included, which means that R-squared is the square of the sample correlation coefficient between the observed outcomes and the predictor values. The value of R-squared in our model is 0.1906, which means that 19.06 % of the variance of the dependent variable is explained by our model. The remaining variance is explained some other factors that we have not included in our model. 
+
+Notice that R-squared is higher in the multiple regression model, even though the additional explanatory variables are insignificant. This is because the R-squared automatically increases when any explanatory  variables are added to a model. To account for this, R prints also "adjusted R-squared" that adjusts for the number of explanatory variables relative to the number of data points. 
+
+
+### 5. Diagnostic plots
+
+When using a linear regression model, we make two important assumptions on the data generating process:
+- the target variable is a linear combination of the model parameters
+- errors are normally distributed with zero mean and a constant variance
+
+The second assumption implies also that the errors should not be correlated and the size of a given error should not depend on the explanatory variable.
+
+We can study the validity of the model by plotting the following three diagnostic plots: Residuals vs fitted values, Normal QQ-plot and Residuals vs. leverage. 
+
+```{r}
+# draw diagnostic plots using the plot() function. Choose the plots 1, 2 and 5
+par(mfrow = c(2,2))
+plot(points_model, which = c(1,2,5))
+
+```
+
+The assumption on the constant variance of the errors can be considered using a simple scatter plot of residuals vs. model predictions (fitted values). Any pattern in this plot implies problem. This plot appears to show no patterns, and we can with reasonable certainty accept the constant variance of errors assumption.
+
+Normal QQ-plot allows us to study the normality of the errors. The plotted values should be reasonably close to the straight line. We can see from the plot that this is indeed the case. 
+
+From the residuals vs. leverage plot we can study the impact single observations have on the model. From the third plot we can see, that no single observation appears to stand out.
+
+Thus with the help of these diagnostic plots we can conclude that the assumptions of the linear regression model are valid. 
+
+
+
+
+
+
+
+
+
+
+
